@@ -11,50 +11,69 @@ typedef struct escarp_sequence_t {
     size_t parsers_len;
 } escarp_sequence_t;
 
-static escarp_error_t parse(escarp_parser_t *base, escarp_uint8_t *in,
-                            size_t *in_idx, size_t in_len, void **out,
-                            size_t *out_len) {
+static escarp_parser_error_t parse(escarp_parser_t *base, escarp_stream_t *in,
+                                   escarp_stream_t **out) {
     escarp_sequence_t *parser = (escarp_sequence_t *)base;
-    void *out_tmp = NULL;
-    size_t out_tmp_len = 0;
-    escarp_uint8_t *out_buf = NULL;
-    size_t out_buf_len = 0;
-    escarp_uint8_t *out_buf_tmp = NULL;
-    escarp_error_t err = ESCARP_SUCCESS;
+    escarp_stream_t *out_tmp = NULL;
+    unsigned char *out_arr = NULL;
+    size_t out_arr_len = 0;
     size_t i = 0;
 
     assert(parser != NULL);
     assert(in != NULL);
-    assert(in_idx != NULL);
     assert(out != NULL);
-    assert(out_len != NULL);
 
     for (i = 0; i < parser->parsers_len; i++) {
-        err = escarp_parse(parser->parsers[i], in, in_idx, in_len, &out_tmp,
-                           &out_tmp_len);
-        if (err != ESCARP_SUCCESS) {
-            free(out_buf);
+        escarp_stream_t *out_part = NULL;
+        unsigned char out_value = 0;
+        escarp_parser_error_t err = ESCARP_PARSER_SUCCESS;
+        escarp_stream_error_t serr = ESCARP_STREAM_SUCCESS;
+
+        err = escarp_parse(parser->parsers[i], in, &out_part);
+        if (err != ESCARP_PARSER_SUCCESS) {
+            free(out_arr);
             return err;
         }
 
-        out_buf_tmp = (escarp_uint8_t *)realloc(
-            out_buf, sizeof(escarp_uint8_t) * (out_buf_len + out_tmp_len));
-        if (out_buf_tmp == NULL) {
-            free(out_tmp);
-            free(out_buf);
-            return ESCARP_ERROR_MEMORY_ALLOCATION_FAILURE;
+        while ((serr = escarp_stream_read(out_part, &out_value)) ==
+               ESCARP_STREAM_SUCCESS) {
+            unsigned char *out_arr_tmp = (unsigned char *)realloc(
+                out_arr, sizeof(unsigned char) * (out_arr_len + 1));
+            if (out_arr_tmp == NULL) {
+                escarp_stream_delete(out_part);
+                free(out_arr);
+                return ESCARP_PARSER_ERROR_MEMORY_ALLOCATION_FAILURE;
+            }
+            out_arr = out_arr_tmp;
+            out_arr[out_arr_len++] = out_value;
         }
-        out_buf = out_buf_tmp;
+        switch (serr) {
+        case ESCARP_STREAM_ERROR_NULL_POINTER:
+            assert(0);
+            break;
+        case ESCARP_STREAM_ERROR_MEMORY_ALLOCATION_FAILURE:
+            escarp_stream_delete(out_part);
+            free(out_arr);
+            return ESCARP_PARSER_ERROR_MEMORY_ALLOCATION_FAILURE;
+        case ESCARP_STREAM_ERROR_EOS:
+            break;
+        default:
+            assert(0);
+            break;
+        }
 
-        memcpy(out_buf + out_buf_len, out_tmp, out_tmp_len);
-        out_buf_len += out_tmp_len;
-
-        free(out_tmp);
+        escarp_stream_delete(out_part);
     }
 
-    *out = (void *)out_buf;
-    *out_len = out_buf_len;
-    return ESCARP_SUCCESS;
+    out_tmp = escarp_uint8_stream_from(out_arr, out_arr_len);
+    if (out_tmp == NULL) {
+        free(out_arr);
+        return ESCARP_PARSER_ERROR_MEMORY_ALLOCATION_FAILURE;
+    }
+    free(out_arr);
+
+    *out = out_tmp;
+    return ESCARP_PARSER_SUCCESS;
 }
 
 static void delete_(escarp_parser_t *base) {
@@ -72,7 +91,6 @@ static void delete_(escarp_parser_t *base) {
 
 escarp_parser_t *escarp_sequence(size_t len, ...) {
     static escarp_parser_vtable_t vtbl = {parse, delete_};
-    static escarp_parser_t base = {&vtbl};
 
     va_list args;
     escarp_sequence_t *parser = NULL;
@@ -110,7 +128,7 @@ escarp_parser_t *escarp_sequence(size_t len, ...) {
         return NULL;
     }
 
-    parser->base = base;
+    parser->base.vtbl = &vtbl;
     parser->parsers = parsers;
     parser->parsers_len = len;
 
