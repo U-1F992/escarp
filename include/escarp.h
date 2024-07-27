@@ -53,6 +53,21 @@ typedef struct escarp_repeat_t {
 
 escarp_parser_t *escarp_repeat(escarp_repeat_t *, escarp_parser_t *, size_t, size_t);
 
+typedef struct escarp_choice_t {
+    escarp_parser_t base;
+    escarp_parser_t *first;
+    escarp_parser_t *second;
+} escarp_choice_t;
+
+escarp_parser_t *escarp_choice(escarp_choice_t *, escarp_parser_t *, escarp_parser_t *);
+
+typedef struct escarp_ignore_t {
+    escarp_parser_t base;
+    escarp_parser_t *target;
+} escarp_ignore_t;
+
+escarp_parser_t *escarp_ignore(escarp_ignore_t *, escarp_parser_t *);
+
 #ifdef __cplusplus
 }
 #endif

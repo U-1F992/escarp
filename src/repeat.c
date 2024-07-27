@@ -30,6 +30,7 @@ static escarp_error_t repeat_parse(escarp_parser_t *base, FILE *fp, void *out) {
             ;
     }
 
+    ((int *)out)[idx] = EOF;
     return ESCARP_SUCCESS;
 }
 

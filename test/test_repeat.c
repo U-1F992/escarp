@@ -118,5 +118,16 @@ int main(void) {
     assert(EOF == out[6]);
     fclose(fp);
 
+    parser = escarp_repeat(&repeat[repeat_usage++],
+                           escarp_value(&value[value_usage++], 0xFF), 0, 1);
+    assert(NULL != parser);
+    fp = tmpfile();
+    fwrite((unsigned char[]){0x0}, 1, 1, fp);
+    fseek(fp, 0, SEEK_SET);
+    err = escarp_parse(parser, fp, out);
+    assert(ESCARP_SUCCESS == err);
+    assert(EOF == out[0]);
+    fclose(fp);
+
     return 0;
 }
