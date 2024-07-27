@@ -7,6 +7,27 @@ extern "C" {
 
 #include <stddef.h>
 
+typedef enum escarp_array_error_t {
+    ESCARP_ARRAY_SUCCESS,
+    ESCARP_ARRAY_ERROR_NULL_POINTER,
+    ESCARP_ARRAY_ERROR_MEMORY_ALLOCATION_FAILURE,
+
+    ESCARP_ARRAY_ERROR_INVALID_TYPE,
+    ESCARP_ARRAY_ERROR_OUT_OF_BOUNDS
+} escarp_array_error_t;
+
+typedef struct escarp_array_t escarp_array_t;
+
+escarp_array_error_t escarp_array_new(escarp_array_t **, size_t, void *,
+                                      size_t);
+void escarp_array_delete(escarp_array_t *);
+escarp_array_error_t escarp_array_get_ptr(escarp_array_t *, void **);
+escarp_array_error_t escarp_array_get_length(escarp_array_t *, size_t *);
+escarp_array_error_t escarp_array_at(escarp_array_t *, size_t, void *);
+escarp_array_error_t escarp_array_push(escarp_array_t *, void *);
+escarp_array_error_t escarp_array_pop(escarp_array_t *, void *);
+escarp_array_error_t escarp_array_concat(escarp_array_t *, escarp_array_t *);
+
 typedef enum escarp_stream_error_t {
     ESCARP_STREAM_SUCCESS,
     ESCARP_STREAM_ERROR_NULL_POINTER,
@@ -65,7 +86,7 @@ typedef struct escarp_parser_t escarp_parser_t;
 
 typedef struct escarp_parser_vtable_t {
     escarp_parser_error_t (*parse)(struct escarp_parser_t *, escarp_stream_t *,
-                                   escarp_stream_t **);
+                                   void *);
     void (*delete_)(struct escarp_parser_t *);
 } escarp_parser_vtable_t;
 
@@ -74,7 +95,7 @@ struct escarp_parser_t {
 };
 
 escarp_parser_error_t escarp_parse(escarp_parser_t *, escarp_stream_t *,
-                                   escarp_stream_t **);
+                                   void *);
 void escarp_parser_delete(escarp_parser_t *);
 
 escarp_parser_t *escarp_any(void);

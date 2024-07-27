@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 escarp_parser_error_t escarp_parse(escarp_parser_t *parser, escarp_stream_t *in,
-                                   escarp_stream_t **out) {
+                                   void *out) {
     if (parser == NULL || in == NULL || out == NULL) {
         return ESCARP_PARSER_ERROR_NULL_POINTER;
     } else {

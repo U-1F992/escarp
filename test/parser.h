@@ -113,7 +113,7 @@ typedef struct test_case_parse_t {
     escarp_stream_t *in;
 
     escarp_parser_error_t expected_err;
-    escarp_stream_t *expected_out;
+    escarp_array_t *expected_out;
 } test_case_parse_t;
 
 static size_t test_parse(void) {
@@ -152,11 +152,11 @@ static size_t test_parse(void) {
         {escarp_any(),                                 /**/
          escarp_uint8_stream_from(in_0, sizeof(in_0)), /**/
          ESCARP_PARSER_SUCCESS,                        /**/
-         escarp_uint8_stream_from(out_0, sizeof(out_0))},
+         escarp_array_new(out_0, sizeof(out_0))},
         {escarp_any(),                                 /**/
          escarp_uint8_stream_from(in_1, sizeof(in_1)), /**/
          ESCARP_PARSER_SUCCESS,                        /**/
-         escarp_uint8_stream_from(out_1, sizeof(out_1))},
+         escarp_array_new(out_1, sizeof(out_1))},
         {escarp_any(),                                 /**/
          escarp_uint8_stream_from(in_2, sizeof(in_2)), /**/
          ESCARP_PARSER_ERROR_UNEXPECTED_EOS,           /**/
@@ -164,13 +164,13 @@ static size_t test_parse(void) {
         {escarp_any(),                                 /**/
          escarp_uint8_stream_from(in_3, sizeof(in_3)), /**/
          ESCARP_PARSER_SUCCESS,                        /**/
-         escarp_uint8_stream_from(out_3, sizeof(out_3))},
+         escarp_array_new(out_3, sizeof(out_3))},
         /*****/
         /*****/
         {escarp_value(1),                              /**/
          escarp_uint8_stream_from(in_4, sizeof(in_4)), /**/
          ESCARP_PARSER_SUCCESS,                        /**/
-         escarp_uint8_stream_from(out_4, sizeof(out_4))},
+         escarp_array_new(out_4, sizeof(out_4))},
         {escarp_value(1),                              /**/
          escarp_uint8_stream_from(in_5, sizeof(in_5)), /**/
          ESCARP_PARSER_ERROR_UNEXPECTED_VALUE,         /**/
@@ -182,17 +182,17 @@ static size_t test_parse(void) {
         {escarp_value(1),                              /**/
          escarp_uint8_stream_from(in_7, sizeof(in_7)), /**/
          ESCARP_PARSER_SUCCESS,                        /**/
-         escarp_uint8_stream_from(out_7, sizeof(out_7))},
+         escarp_array_new(out_7, sizeof(out_7))},
         /*****/
         /*****/
         {escarp_sequence(2, escarp_any(), escarp_value(1)), /**/
          escarp_uint8_stream_from(in_8, sizeof(in_8)),      /**/
          ESCARP_PARSER_SUCCESS,                             /**/
-         escarp_uint8_stream_from(out_8, sizeof(out_8))},
+         escarp_array_new(out_8, sizeof(out_8))},
         {escarp_sequence(2, escarp_any(), escarp_value(1)), /**/
          escarp_uint8_stream_from(in_9, sizeof(in_9)),      /**/
          ESCARP_PARSER_SUCCESS,                             /**/
-         escarp_uint8_stream_from(out_9, sizeof(out_9))},
+         escarp_array_new(out_9, sizeof(out_9))},
         {escarp_sequence(2, escarp_any(), escarp_value(1)), /**/
          escarp_uint8_stream_from(in_10, sizeof(in_10)),    /**/
          ESCARP_PARSER_ERROR_UNEXPECTED_VALUE,              /**/
