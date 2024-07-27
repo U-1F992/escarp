@@ -5,7 +5,7 @@ Under construction.
 - [x] `any`
 - [x] `value`
 - [x] `sequence`
-- [ ] `repeat`
+- [x] `repeat`
 - [ ] `many`
 - [ ] `try`
 - [ ] `choice`
