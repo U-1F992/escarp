@@ -15,6 +15,30 @@ typedef enum escarp_error_t {
     ESCARP_ERROR_UNEXPECTED_VALUE
 } escarp_error_t;
 
+#ifndef ESCARP_HISTORY_COUNT
+#define ESCARP_HISTORY_COUNT 64
+#endif
+
+#ifndef ESCARP_CHECKPOINTS_COUNT
+#define ESCARP_CHECKPOINTS_COUNT 32
+#endif
+
+typedef struct escarp_stream_t {
+    int (*getc)(struct escarp_stream_t *);
+
+    int history[ESCARP_HISTORY_COUNT];
+    size_t history_count;
+    size_t history_index;
+
+    size_t checkpoints[ESCARP_CHECKPOINTS_COUNT];
+    size_t checkpoints_count;
+
+} escarp_stream_t;
+
+void escarp_stream_init(escarp_stream_t *);
+int escarp_getc(escarp_stream_t *);
+void escarp_use_backtracking(escarp_stream_t *, int (*)(escarp_stream_t *));
+
 typedef struct escarp_parser_t {
     escarp_error_t (*parse)(struct escarp_parser_t *, FILE *, void *);
 } escarp_parser_t;
@@ -42,7 +66,8 @@ typedef struct escarp_sequence_t {
     escarp_parser_t *second;
 } escarp_sequence_t;
 
-escarp_parser_t *escarp_sequence(escarp_sequence_t *, escarp_parser_t *, escarp_parser_t *);
+escarp_parser_t *escarp_sequence(escarp_sequence_t *, escarp_parser_t *,
+                                 escarp_parser_t *);
 
 typedef struct escarp_repeat_t {
     escarp_parser_t base;
@@ -51,7 +76,8 @@ typedef struct escarp_repeat_t {
     size_t max;
 } escarp_repeat_t;
 
-escarp_parser_t *escarp_repeat(escarp_repeat_t *, escarp_parser_t *, size_t, size_t);
+escarp_parser_t *escarp_repeat(escarp_repeat_t *, escarp_parser_t *, size_t,
+                               size_t);
 
 typedef struct escarp_choice_t {
     escarp_parser_t base;
@@ -59,7 +85,8 @@ typedef struct escarp_choice_t {
     escarp_parser_t *second;
 } escarp_choice_t;
 
-escarp_parser_t *escarp_choice(escarp_choice_t *, escarp_parser_t *, escarp_parser_t *);
+escarp_parser_t *escarp_choice(escarp_choice_t *, escarp_parser_t *,
+                               escarp_parser_t *);
 
 typedef struct escarp_ignore_t {
     escarp_parser_t base;

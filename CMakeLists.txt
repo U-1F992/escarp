@@ -9,6 +9,10 @@ target_include_directories(escarp PUBLIC include)
 
 enable_testing()
 
+add_executable(escarp_test_stream test/test_stream.c)
+target_link_libraries(escarp_test_stream escarp)
+add_test(NAME escarp_test_stream COMMAND escarp_test_stream)
+
 add_executable(escarp_test_any test/test_any.c)
 target_link_libraries(escarp_test_any escarp)
 add_test(NAME escarp_test_any COMMAND escarp_test_any)
