@@ -2,22 +2,33 @@
 
 #include "internal.h"
 
-static escarp_error_t choice_parse(escarp_parser_t *base, FILE *fp, void *out) {
+typedef struct choice_context_t {
+    escarp_parser_t *target;
+    int *out;
+    escarp_error_t out_err;
+} choice_context_t;
+
+static int callback(escarp_stream_t *stream, void *other_data) {
+    choice_context_t *ctx = (choice_context_t *)other_data;
+    return (ctx->out_err = escarp_parse(ctx->target, stream, ctx->out)) ==
+                   ESCARP_SUCCESS
+               ? 1
+               : 0;
+}
+
+static escarp_error_t choice_parse(escarp_parser_t *base,
+                                   escarp_stream_t *stream, void *out) {
     escarp_choice_t *self = (escarp_choice_t *)base;
-    escarp_error_t err[2];
-    long pos = 0;
+    escarp_error_t err;
 
-    pos = ftell(fp);
-    if ((err[0] = escarp_parse(self->first, fp, out)) == ESCARP_SUCCESS) {
-        return ESCARP_SUCCESS;
-    }
-    fseek(fp, pos, SEEK_SET);
-    if ((err[1] = escarp_parse(self->second, fp, out)) == ESCARP_SUCCESS) {
+    choice_context_t ctx = {self->first, out, ESCARP_SUCCESS};
+    if (escarp_use_backtracking(stream, callback, &ctx) ||
+        (err = escarp_parse(self->second, stream, out)) == ESCARP_SUCCESS) {
         return ESCARP_SUCCESS;
     }
 
-    return (err[0] == ESCARP_ERROR_UNEXPECTED_EOF && err[1] == err[0])
-               ? err[0]
+    return (ctx.out_err == ESCARP_ERROR_UNEXPECTED_EOF && err == ctx.out_err)
+               ? ESCARP_ERROR_UNEXPECTED_EOF
                : ESCARP_ERROR_UNEXPECTED_VALUE;
 }
 

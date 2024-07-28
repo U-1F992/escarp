@@ -2,7 +2,19 @@
 
 #include "internal.h"
 
-static escarp_error_t repeat_parse(escarp_parser_t *base, FILE *fp, void *out) {
+typedef struct repeat_context_t {
+    escarp_parser_t *target;
+    int *out;
+} repeat_context_t;
+
+static int callback(escarp_stream_t *stream, void *other_data) {
+    repeat_context_t *ctx = (repeat_context_t *)other_data;
+    return escarp_parse(ctx->target, stream, ctx->out) == ESCARP_SUCCESS ? 1
+                                                                         : 0;
+}
+
+static escarp_error_t repeat_parse(escarp_parser_t *base,
+                                   escarp_stream_t *stream, void *out) {
     escarp_repeat_t *self = (escarp_repeat_t *)base;
     escarp_error_t err = ESCARP_SUCCESS;
     size_t idx = 0;
@@ -10,7 +22,7 @@ static escarp_error_t repeat_parse(escarp_parser_t *base, FILE *fp, void *out) {
     size_t i = 0;
 
     for (i = 0; i < self->min; i++) {
-        if ((err = escarp_parse(self->target, fp, &((int *)out)[idx])) !=
+        if ((err = escarp_parse(self->target, stream, &((int *)out)[idx])) !=
             ESCARP_SUCCESS) {
             return err;
         }
@@ -19,10 +31,8 @@ static escarp_error_t repeat_parse(escarp_parser_t *base, FILE *fp, void *out) {
     }
 
     for (i = 0; i < self->max - self->min; i++) {
-        pos = ftell(fp);
-        if ((err = escarp_parse(self->target, fp, &((int *)out)[idx])) !=
-            ESCARP_SUCCESS) {
-            fseek(fp, pos, SEEK_SET);
+        repeat_context_t ctx = {self->target, &((int *)out)[idx]};
+        if (!escarp_use_backtracking(stream, callback, &ctx)) {
             ((int *)out)[idx] = EOF;
             return ESCARP_SUCCESS;
         }

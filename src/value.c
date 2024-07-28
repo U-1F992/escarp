@@ -2,11 +2,12 @@
 
 #include "internal.h"
 
-static escarp_error_t value_parse(escarp_parser_t *base, FILE *fp, void *out) {
+static escarp_error_t value_parse(escarp_parser_t *base,
+                                  escarp_stream_t *stream, void *out) {
     escarp_value_t *self = (escarp_value_t *)base;
     int c = EOF;
 
-    if ((c = fgetc(fp)) == EOF) {
+    if ((c = escarp_getc(stream)) == EOF) {
         return ESCARP_ERROR_UNEXPECTED_EOF;
     } else if (c != self->value) {
         return ESCARP_ERROR_UNEXPECTED_VALUE;

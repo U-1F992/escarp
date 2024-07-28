@@ -1,7 +1,8 @@
 #include <escarp.h>
 
+#include "test.h"
+
 #include <assert.h>
-#include <stdio.h>
 
 int main(void) {
     escarp_error_t err = ESCARP_SUCCESS;
@@ -28,15 +29,14 @@ int main(void) {
     size_t choice_usage = 0;
 #define CHOICE(p0, p1) escarp_choice(&choice_pool[choice_usage++], (p0), (p1))
 
-    FILE *fp = NULL;
+    uint8_array_stream_t stream;
     int out[256];
 
     escarp_parser_t *nxmc2 = SEQUENCE(VALUE(0xAB), REPEAT(ANY(), 10, 10));
 
-    fp = tmpfile();
-    fwrite((unsigned char[]){0xAB, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, 1, 11, fp);
-    fseek(fp, 0, SEEK_SET);
-    err = escarp_parse(nxmc2, fp, out);
+    uint8_array_stream_init(
+        &stream, (unsigned char[]){0xAB, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, 11);
+    err = escarp_parse(nxmc2, &(stream.base), out);
     assert(ESCARP_SUCCESS == err);
     assert(0xAB == out[0]);
     assert(1 == out[1]);
@@ -49,7 +49,6 @@ int main(void) {
     assert(8 == out[8]);
     assert(9 == out[9]);
     assert(10 == out[10]);
-    fclose(fp);
 
     escarp_parser_t *whitespace = VALUE(' ');
     escarp_parser_t *hex_prefix = SEQUENCE(VALUE('0'), VALUE('x'));
@@ -82,24 +81,20 @@ int main(void) {
     escarp_parser_t *pokecon = SEQUENCE(
         CHOICE(SEQUENCE(
                    pokecon_button,
-                   SEQUENCE(
-                       whitespace,
-                       SEQUENCE(zero_to_eight,
-                                SEQUENCE(whitespace,
-                                         SEQUENCE(pokecon_stick,
-                                                  SEQUENCE(whitespace,
-                                                           pokecon_stick)))))),
+                   SEQUENCE(whitespace,
+                            SEQUENCE(zero_to_eight,
+                                     REPEAT(SEQUENCE(whitespace, pokecon_stick),
+                                            0, 2)))),
                e_n_d),
         linebreak);
 
-    fp = tmpfile();
-    fwrite((unsigned char[]){'0', 'x', '0', '0', '0', '2', ' ', '8', ' ', '8',
-                             '0', ' ', '8', '0', '\r', '\n'},
-           1, 16, fp);
-    fseek(fp, 0, SEEK_SET);
-    err = escarp_parse(pokecon, fp, out);
+    uint8_array_stream_init(&stream,
+                            (unsigned char[]){'0', 'x', '0', '0', '0', '2', ' ',
+                                              '8', ' ', '8', '0', ' ', '8', '0',
+                                              '\r', '\n'},
+                            16);
+    err = escarp_parse(pokecon, &(stream.base), out);
     assert(ESCARP_SUCCESS == err);
-    fclose(fp);
 
     return 0;
 }

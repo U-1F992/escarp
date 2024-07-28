@@ -2,12 +2,13 @@
 
 #include "internal.h"
 
-static escarp_error_t any_parse(escarp_parser_t *base, FILE *fp, void *out) {
+static escarp_error_t any_parse(escarp_parser_t *base, escarp_stream_t *stream,
+                                void *out) {
     int c = EOF;
 
     escarp_unused(base);
 
-    if ((c = fgetc(fp)) == EOF) {
+    if ((c = escarp_getc(stream)) == EOF) {
         return ESCARP_ERROR_UNEXPECTED_EOF;
     }
 

@@ -2,19 +2,19 @@
 
 #include "internal.h"
 
-static escarp_error_t sequence_parse(escarp_parser_t *base, FILE *fp,
-                                     void *out) {
+static escarp_error_t sequence_parse(escarp_parser_t *base,
+                                     escarp_stream_t *stream, void *out) {
     escarp_sequence_t *self = (escarp_sequence_t *)base;
     escarp_error_t err = ESCARP_SUCCESS;
     size_t idx = 0;
 
-    if ((err = escarp_parse(self->first, fp, &((int *)out)[idx])) !=
+    if ((err = escarp_parse(self->first, stream, &((int *)out)[idx])) !=
         ESCARP_SUCCESS) {
         return err;
     }
     for (; ((int *)out)[idx] != EOF; idx++)
         ;
-    if ((err = escarp_parse(self->second, fp, &((int *)out)[idx])) !=
+    if ((err = escarp_parse(self->second, stream, &((int *)out)[idx])) !=
         ESCARP_SUCCESS) {
         return err;
     }

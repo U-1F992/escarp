@@ -38,15 +38,19 @@ int escarp_getc(escarp_stream_t *stream) {
     return ret;
 }
 
-void escarp_use_backtracking(escarp_stream_t *stream,
-                             int (*callback)(escarp_stream_t *)) {
+int escarp_use_backtracking(escarp_stream_t *stream,
+                            int (*callback)(escarp_stream_t *, void *),
+                            void *other_data) {
     assert(stream != NULL);
     assert(callback != NULL);
 
     stream->checkpoints[stream->checkpoints_count++] = stream->history_index;
-    if (!callback(stream)) {
+    if (!callback(stream, other_data)) {
         stream->history_index =
             stream->checkpoints[stream->checkpoints_count - 1];
+        return 0; /* false */
+    } else {
+        stream->checkpoints_count--;
+        return 1; /* true */
     }
-    stream->checkpoints_count--;
 }

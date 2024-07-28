@@ -37,15 +37,17 @@ typedef struct escarp_stream_t {
 
 void escarp_stream_init(escarp_stream_t *);
 int escarp_getc(escarp_stream_t *);
-void escarp_use_backtracking(escarp_stream_t *, int (*)(escarp_stream_t *));
+int escarp_use_backtracking(escarp_stream_t *,
+                             int (*)(escarp_stream_t *, void *), void *);
 
 typedef struct escarp_parser_t {
-    escarp_error_t (*parse)(struct escarp_parser_t *, FILE *, void *);
+    escarp_error_t (*parse)(struct escarp_parser_t *, escarp_stream_t *,
+                            void *);
 } escarp_parser_t;
 
-#define escarp_parse(parser, fp, out)                                          \
-    (assert((parser) != NULL), assert((fp) != NULL), assert((out) != NULL),    \
-     (parser)->parse((parser), (fp), (out)))
+#define escarp_parse(parser, stream, out)                                      \
+    (assert((parser) != NULL), assert((stream) != NULL),                       \
+     assert((out) != NULL), (parser)->parse((parser), (stream), (out)))
 
 typedef struct escarp_any_t {
     escarp_parser_t base;
