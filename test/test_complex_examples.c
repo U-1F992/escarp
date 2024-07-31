@@ -72,8 +72,10 @@ int main(void) {
                                            CHOICE(VALUE('e'), VALUE('f'))))))));
     escarp_parser_t *pokecon_button = CHOICE(
         SEQUENCE(hex_prefix, REPEAT(hex_digit, 4, 4)), REPEAT(hex_digit, 1, 4));
-    escarp_parser_t *pokecon_stick =
+    escarp_parser_t *pokecon_stick_axis =
         SEQUENCE(REPEAT(hex_prefix, 0, 1), REPEAT(hex_digit, 1, 2));
+    escarp_parser_t *pokecon_stick =
+        SEQUENCE(pokecon_stick_axis, SEQUENCE(whitespace, pokecon_stick_axis));
     escarp_parser_t *e_n_d =
         SEQUENCE(VALUE('e'), SEQUENCE(VALUE('n'), VALUE('d')));
     escarp_parser_t *linebreak =
@@ -88,13 +90,28 @@ int main(void) {
                e_n_d),
         linebreak);
 
+    uint8_array_stream_init(&stream, (unsigned char[]){'e', 'n', 'd', '\n'}, 4);
+    assert(ESCARP_SUCCESS == escarp_parse(pokecon, &(stream.base), out));
+
+    uint8_array_stream_init(
+        &stream,
+        (unsigned char[]){'0', 'x', '0', '0', '0', '0', ' ', '0', '\r', '\n'},
+        10);
+    assert(ESCARP_SUCCESS == escarp_parse(pokecon, &(stream.base), out));
+
+    uint8_array_stream_init(&stream,
+                            (unsigned char[]){'3', ' ', '8', ' ', '0', 'x', 'a',
+                                              'e', ' ', '0', 'x', '9', ' ', '8',
+                                              '0', ' ', '8', '0', '\n'},
+                            19);
+    assert(ESCARP_SUCCESS == escarp_parse(pokecon, &(stream.base), out));
+
     uint8_array_stream_init(&stream,
                             (unsigned char[]){'0', 'x', '0', '0', '0', '2', ' ',
                                               '8', ' ', '8', '0', ' ', '8', '0',
                                               '\r', '\n'},
                             16);
-    err = escarp_parse(pokecon, &(stream.base), out);
-    assert(ESCARP_SUCCESS == err);
+    assert(ESCARP_SUCCESS == escarp_parse(pokecon, &(stream.base), out));
 
     return 0;
 }

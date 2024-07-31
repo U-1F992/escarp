@@ -15,29 +15,23 @@ typedef enum escarp_error_t {
     ESCARP_ERROR_UNEXPECTED_VALUE
 } escarp_error_t;
 
-#ifndef ESCARP_HISTORY_COUNT
-#define ESCARP_HISTORY_COUNT 64
-#endif
-
-#ifndef ESCARP_CHECKPOINTS_COUNT
-#define ESCARP_CHECKPOINTS_COUNT 32
-#endif
-
 typedef struct escarp_stream_t {
     int (*getc)(struct escarp_stream_t *);
 
-    int history[ESCARP_HISTORY_COUNT];
+    int *history;
+    size_t history_count_limit;
     size_t history_count;
     size_t history_index;
 
-    size_t checkpoints[ESCARP_CHECKPOINTS_COUNT];
+    size_t *checkpoints;
+    size_t checkpoints_count_limit;
     size_t checkpoints_count;
 
 } escarp_stream_t;
 
-void escarp_stream_init(escarp_stream_t *);
+void escarp_stream_init(escarp_stream_t *, int *, size_t, size_t *, size_t);
 int escarp_getc(escarp_stream_t *);
-int escarp_use_backtracking(escarp_stream_t *,
+int escarp_with_backtracking(escarp_stream_t *,
                              int (*)(escarp_stream_t *, void *), void *);
 
 typedef struct escarp_parser_t {

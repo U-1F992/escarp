@@ -23,12 +23,16 @@ static int uint8_array_stream_getc(escarp_stream_t *base) {
     return stream->index < stream->count ? stream->array[stream->index++] : EOF;
 }
 
+static int history_buffer[32];
+static size_t checkpoints_buffer[32];
+
 static void uint8_array_stream_init(uint8_array_stream_t *stream,
                                     unsigned char *array, size_t count) {
     assert(stream != NULL);
     assert(array != NULL);
 
-    escarp_stream_init(&(stream->base));
+    escarp_stream_init(&(stream->base), history_buffer, 32, checkpoints_buffer,
+                       32);
     stream->base.getc = uint8_array_stream_getc;
 
     stream->count = count > 256 ? 256 : count;

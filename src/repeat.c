@@ -32,7 +32,7 @@ static escarp_error_t repeat_parse(escarp_parser_t *base,
 
     for (i = 0; i < self->max - self->min; i++) {
         repeat_context_t ctx = {self->target, &((int *)out)[idx]};
-        if (!escarp_use_backtracking(stream, callback, &ctx)) {
+        if (!escarp_with_backtracking(stream, callback, &ctx)) {
             ((int *)out)[idx] = EOF;
             return ESCARP_SUCCESS;
         }

@@ -82,5 +82,25 @@ int main(void) {
     err = escarp_parse(parser, &(stream.base), out);
     assert(ESCARP_ERROR_UNEXPECTED_VALUE == err);
 
+    parser = escarp_choice(
+        &choice[choice_usage++],
+        escarp_sequence(&sequence[sequence_usage++],
+                        escarp_value(&value[value_usage++], 'e'),
+                        escarp_value(&value[value_usage++], 'n')),
+        escarp_sequence(&sequence[sequence_usage++],
+                        escarp_choice(&choice[choice_usage++],
+                                      escarp_value(&value[value_usage++], '0'),
+                                      escarp_value(&value[value_usage++], 'e')),
+                        escarp_value(&value[value_usage++], ' ')));
+    assert(NULL != parser);
+
+    uint8_array_stream_init(&stream, (unsigned char[]){'e', 'n'}, 2);
+    err = escarp_parse(parser, &(stream.base), out);
+    assert(ESCARP_SUCCESS == err);
+
+    uint8_array_stream_init(&stream, (unsigned char[]){'e', ' '}, 2);
+    err = escarp_parse(parser, &(stream.base), out);
+    assert(ESCARP_SUCCESS == err);
+
     return 0;
 }

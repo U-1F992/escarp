@@ -22,7 +22,7 @@ static escarp_error_t choice_parse(escarp_parser_t *base,
     escarp_error_t err;
 
     choice_context_t ctx = {self->first, out, ESCARP_SUCCESS};
-    if (escarp_use_backtracking(stream, callback, &ctx) ||
+    if (escarp_with_backtracking(stream, callback, &ctx) ||
         (err = escarp_parse(self->second, stream, out)) == ESCARP_SUCCESS) {
         return ESCARP_SUCCESS;
     }
